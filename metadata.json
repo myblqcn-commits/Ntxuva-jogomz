@@ -1,0 +1,6 @@
+{
+  "name": "NTXUVA — Jogo Tradicional Moçambicano",
+  "description": "Jogo web moderno, responsivo e autêntico de Ntxuva com modos contra IA e 2 Jogadores, semeadura múltipla, captura dupla e regras tradicionais.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

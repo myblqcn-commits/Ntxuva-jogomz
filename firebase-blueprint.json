@@ -1,0 +1,132 @@
+{
+  "entities": {
+    "Player": {
+      "title": "Player",
+      "description": "Perfil e estatísticas de jogo do jogador de Ntxuva",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "photoURL": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "wins": {
+          "type": "number"
+        },
+        "losses": {
+          "type": "number"
+        },
+        "draws": {
+          "type": "number"
+        },
+        "totalGames": {
+          "type": "number"
+        },
+        "seedsCaptured": {
+          "type": "number"
+        },
+        "experiencePoints": {
+          "type": "number"
+        },
+        "level": {
+          "type": "number"
+        },
+        "levelTitle": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "displayName",
+        "wins",
+        "losses",
+        "seedsCaptured",
+        "experiencePoints",
+        "level"
+      ]
+    },
+    "Match": {
+      "title": "Match",
+      "description": "Registo de partida concluída de Ntxuva",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "playerId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "playerName": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "gameMode": {
+          "type": "string",
+          "enum": ["ai", "two_player"]
+        },
+        "difficulty": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "winner": {
+          "type": "string",
+          "enum": ["player1", "player2", "draw"]
+        },
+        "isWinner": {
+          "type": "boolean"
+        },
+        "seedsCaptured": {
+          "type": "number"
+        },
+        "totalTurns": {
+          "type": "number"
+        },
+        "winReason": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "playerId",
+        "gameMode",
+        "winner",
+        "isWinner",
+        "seedsCaptured"
+      ]
+    }
+  },
+  "firestore": {
+    "/players/{playerId}": {
+      "schema": {
+        "$ref": "#/entities/Player"
+      },
+      "description": "Perfis públicos dos jogadores para estatísticas e classificação"
+    },
+    "/matches/{matchId}": {
+      "schema": {
+        "$ref": "#/entities/Match"
+      },
+      "description": "Histórico de partidas gravadas dos jogadores"
+    }
+  }
+}

@@ -1,0 +1,95 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidPlayer(data) {
+      return data.keys().hasAll(['id', 'displayName', 'wins', 'losses', 'seedsCaptured', 'experiencePoints', 'level']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.displayName is string && data.displayName.size() > 0 && data.displayName.size() <= 50 &&
+        (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500)) &&
+        data.wins is number && data.wins >= 0 &&
+        data.losses is number && data.losses >= 0 &&
+        (!('draws' in data) || (data.draws is number && data.draws >= 0)) &&
+        (!('totalGames' in data) || (data.totalGames is number && data.totalGames >= 0)) &&
+        data.seedsCaptured is number && data.seedsCaptured >= 0 &&
+        data.experiencePoints is number && data.experiencePoints >= 0 &&
+        data.level is number && data.level >= 1 &&
+        (!('levelTitle' in data) || (data.levelTitle is string && data.levelTitle.size() <= 50)) &&
+        (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 60)) &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 60));
+    }
+
+    function isValidMatch(data) {
+      return data.keys().hasAll(['id', 'playerId', 'gameMode', 'winner', 'isWinner', 'seedsCaptured']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.playerId is string && data.playerId.size() <= 128 &&
+        (!('playerName' in data) || (data.playerName is string && data.playerName.size() <= 50)) &&
+        (data.gameMode == 'ai' || data.gameMode == 'two_player' || data.gameMode == 'pass_and_play') &&
+        (!('difficulty' in data) || (data.difficulty is string && data.difficulty.size() <= 30)) &&
+        (data.winner == 'player1' || data.winner == 'player2' || data.winner == 'draw') &&
+        data.isWinner is bool &&
+        data.seedsCaptured is number && data.seedsCaptured >= 0 &&
+        (!('totalTurns' in data) || (data.totalTurns is number && data.totalTurns >= 0)) &&
+        (!('winReason' in data) || (data.winReason is string && data.winReason.size() <= 200)) &&
+        (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 60));
+    }
+
+    // Players collection for profiles & leaderboard
+    match /players/{playerId} {
+      allow get, list: if true;
+      allow create: if isValidId(playerId) &&
+        isValidPlayer(incoming()) &&
+        (
+          (isSignedIn() && (request.auth.uid == playerId || incoming().id == playerId)) ||
+          (!isSignedIn() && incoming().id == playerId)
+        );
+      allow update: if isValidId(playerId) &&
+        isValidPlayer(incoming()) &&
+        (
+          (isSignedIn() && (request.auth.uid == playerId || existing().id == playerId)) ||
+          (!isSignedIn() && existing().id == playerId)
+        );
+      allow delete: if false;
+    }
+
+    // Matches collection for recorded games
+    match /matches/{matchId} {
+      allow get, list: if true;
+      allow create: if isValidId(matchId) &&
+        isValidMatch(incoming()) &&
+        (
+          (isSignedIn() && (request.auth.uid == incoming().playerId || isValidId(incoming().playerId))) ||
+          (!isSignedIn() && isValidId(incoming().playerId))
+        );
+      allow update, delete: if false;
+    }
+
+    // Connection test document
+    match /test/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
